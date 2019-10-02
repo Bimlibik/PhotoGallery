@@ -15,9 +15,9 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
-public class FlickrFletchr {
+public class FlickrFetchr {
 
-    private static final String TAG = "FlickrFletchr";
+    private static final String TAG = "FlickrFetchr";
     private static final String API_KEY = "3d94bfd04d25d8f1e269fbf13e2a04b3";
 
     public byte[] getUrlBytes(String urlSspec) throws IOException {

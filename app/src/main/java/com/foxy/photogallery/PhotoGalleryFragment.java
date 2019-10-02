@@ -1,8 +1,12 @@
 package com.foxy.photogallery;
 
+import android.graphics.Bitmap;
+import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Handler;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -14,7 +18,6 @@ import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -25,6 +28,8 @@ public class PhotoGalleryFragment extends Fragment {
     private RecyclerView recyclerView;
     private List<GalleryItem> items = new ArrayList<>();
 
+    private ThumbnailDownloader<PhotoHolder> thumbnailDownloader;
+
     public static PhotoGalleryFragment newInstance() {
         return new PhotoGalleryFragment();
     }
@@ -34,6 +39,20 @@ public class PhotoGalleryFragment extends Fragment {
         super.onCreate(savedInstanceState);
         setRetainInstance(true);              // удержание фрагмента
         new FetchItemsTask().execute();  // запуск фонового потока
+
+        Handler responseHandler = new Handler();
+        thumbnailDownloader = new ThumbnailDownloader<>(responseHandler);
+        thumbnailDownloader.setThumbnailDownloadListener(new ThumbnailDownloader.ThumbnailDownloadListener<PhotoHolder>() {
+            @Override
+            public void onThumbnailDownloaded(PhotoHolder photoHolder, Bitmap bitmap) {
+                Drawable drawable = new BitmapDrawable(getResources(), bitmap);
+                photoHolder.bind(drawable);
+                Log.i(TAG, "Img downloaded");
+            }
+        });
+        thumbnailDownloader.start();
+        thumbnailDownloader.getLooper();
+        Log.i(TAG, "Background thread started");
     }
 
     @Nullable
@@ -46,6 +65,19 @@ public class PhotoGalleryFragment extends Fragment {
         return view;
     }
 
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        thumbnailDownloader.clearQueue();
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        thumbnailDownloader.quit();
+        Log.i(TAG, "Background thread destroyed");
+    }
+
     private void setupAdapter(List<GalleryItem> items) {
         // проверка на то, что фрагмент был присоединен к activity и что getActivity() != null
         // необходимо из-за использования AsyncTask
@@ -55,6 +87,7 @@ public class PhotoGalleryFragment extends Fragment {
     }
 
 
+    // Holder
     private class PhotoHolder extends RecyclerView.ViewHolder {
         private ImageView itemImageView;
 
@@ -68,6 +101,7 @@ public class PhotoGalleryFragment extends Fragment {
         }
     }
 
+    // Adapter
     private class PhotoAdapter extends RecyclerView.Adapter<PhotoHolder> {
         private List<GalleryItem> galleryItems;
 
@@ -87,7 +121,8 @@ public class PhotoGalleryFragment extends Fragment {
         public void onBindViewHolder(@NonNull PhotoHolder holder, int position) {
             GalleryItem item = galleryItems.get(position);
             Drawable placeholder = getResources().getDrawable(R.drawable.bill_up_close);
-            holder.bind(placeholder);
+//            holder.bind(placeholder);
+            thumbnailDownloader.queueThumbnail(holder, item.getUrl());
         }
 
         @Override
@@ -97,11 +132,12 @@ public class PhotoGalleryFragment extends Fragment {
     }
 
 
+    // AsyncTask
     private class FetchItemsTask extends AsyncTask<Void, Void, List<GalleryItem>> {
 
         @Override
         protected List<GalleryItem> doInBackground(Void... params) {
-            return new FlickrFletchr().fetchItems();
+            return new FlickrFetchr().fetchItems();
         }
 
         @Override
