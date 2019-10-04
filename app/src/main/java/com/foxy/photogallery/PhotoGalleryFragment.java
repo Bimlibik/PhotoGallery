@@ -14,6 +14,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.QuickContactBadge;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -97,6 +98,7 @@ public class PhotoGalleryFragment extends Fragment {
             @Override
             public boolean onQueryTextSubmit(String query) {
                 Log.d(TAG, "QueryTextSubmit: " + query);
+                QueryPreferences.setStoredQuery(getActivity(), query);      // сохранение запроса в настройки
                 updateItems();
                 return true;
             }
@@ -108,10 +110,33 @@ public class PhotoGalleryFragment extends Fragment {
                 return false;
             }
         });
+
+        // устанавливает текст запроса в соответствии с сохраненным запросом в настройках
+        searchView.setOnSearchClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                String query = QueryPreferences.getStoredQuery(getActivity());
+                searchView.setQuery(query, false);
+            }
+        });
     }
 
+    @Override
+    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.menu_item_clear:
+                QueryPreferences.setStoredQuery(getActivity(), null);   // удаление сохраненого запроса
+                updateItems();
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
+        }
+    }
+
+    // показ фото на основе последнего сохраненного запроса
     private void updateItems() {
-        new FetchItemsTask().execute();
+        String query = QueryPreferences.getStoredQuery(getActivity());
+        new FetchItemsTask(query).execute();
     }
 
     private void setupAdapter(List<GalleryItem> items) {
@@ -169,12 +194,17 @@ public class PhotoGalleryFragment extends Fragment {
 
 
     // AsyncTask
+    // Если запрос = null - отображение последних загруженных пользователями фото
+    // либо отображение фото по указанному пользователем запросу
     private class FetchItemsTask extends AsyncTask<Void, Void, List<GalleryItem>> {
+        private String query;
+
+        public FetchItemsTask(String query) {
+            this.query = query;
+        }
 
         @Override
         protected List<GalleryItem> doInBackground(Void... params) {
-            String query = "robot";  // для тестирования
-
             if (query == null) {
                 return new FlickrFetchr().fetchRecentPhotos();
             } else {
