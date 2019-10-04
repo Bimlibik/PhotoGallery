@@ -8,12 +8,16 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.widget.SearchView;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -38,7 +42,8 @@ public class PhotoGalleryFragment extends Fragment {
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setRetainInstance(true);              // удержание фрагмента
-        new FetchItemsTask().execute();  // запуск фонового потока
+        setHasOptionsMenu(true);              // получение обратных вызовов меню
+        updateItems();                        // запуск фонового потока
 
         Handler responseHandler = new Handler();
         thumbnailDownloader = new ThumbnailDownloader<>(responseHandler);
@@ -76,6 +81,37 @@ public class PhotoGalleryFragment extends Fragment {
         super.onDestroy();
         thumbnailDownloader.quit();
         Log.i(TAG, "Background thread destroyed");
+    }
+
+    // SearchView
+    @Override
+    public void onCreateOptionsMenu(@NonNull Menu menu, @NonNull MenuInflater inflater) {
+        super.onCreateOptionsMenu(menu, inflater);
+        inflater.inflate(R.menu.fragment_photo_gallery, menu);
+
+        MenuItem searchItem = menu.findItem(R.id.menu_item_search);
+        final SearchView searchView = (SearchView) searchItem.getActionView();   // извлекаем объект searchView
+
+        searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+            // выполняется при отправке запроса пользователем
+            @Override
+            public boolean onQueryTextSubmit(String query) {
+                Log.d(TAG, "QueryTextSubmit: " + query);
+                updateItems();
+                return true;
+            }
+
+            // выполняется при каждом изменении текста
+            @Override
+            public boolean onQueryTextChange(String newText) {
+                Log.d(TAG, "QueryTextChange: " + newText);
+                return false;
+            }
+        });
+    }
+
+    private void updateItems() {
+        new FetchItemsTask().execute();
     }
 
     private void setupAdapter(List<GalleryItem> items) {
