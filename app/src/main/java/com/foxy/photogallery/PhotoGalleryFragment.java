@@ -46,9 +46,6 @@ public class PhotoGalleryFragment extends Fragment {
         setHasOptionsMenu(true);              // получение обратных вызовов меню
         updateItems();                        // запуск фонового потока
 
-        Intent intent = PollService.newIntent(getActivity());  // запуск службы PollService
-        getActivity().startService(intent);
-
         Handler responseHandler = new Handler();
         thumbnailDownloader = new ThumbnailDownloader<>(responseHandler);
         thumbnailDownloader.setThumbnailDownloadListener(new ThumbnailDownloader.ThumbnailDownloadListener<PhotoHolder>() {
@@ -122,6 +119,14 @@ public class PhotoGalleryFragment extends Fragment {
                 searchView.setQuery(query, false);
             }
         });
+
+        // смена заголовка для сервиса
+        MenuItem toggleItem = menu.findItem(R.id.menu_item_toggle_polling);
+        if (PollService.isServiceAlarmOn(getActivity())) {
+            toggleItem.setTitle(R.string.stop_polling);
+        } else {
+            toggleItem.setTitle(R.string.start_polling);
+        }
     }
 
     @Override
@@ -130,6 +135,12 @@ public class PhotoGalleryFragment extends Fragment {
             case R.id.menu_item_clear:
                 QueryPreferences.setStoredQuery(getActivity(), null);   // удаление сохраненого запроса
                 updateItems();
+                return true;
+            // запуск и отключение PollService
+            case R.id.menu_item_toggle_polling:
+                boolean shouldStartAlarm = !PollService.isServiceAlarmOn(getActivity());
+                PollService.setServiceAlarm(getActivity(), shouldStartAlarm);
+                getActivity().invalidateOptionsMenu();       // обновление меню на панели инструментов
                 return true;
             default:
                 return super.onOptionsItemSelected(item);

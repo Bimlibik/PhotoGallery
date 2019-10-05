@@ -1,17 +1,24 @@
 package com.foxy.photogallery;
 
+import android.app.AlarmManager;
 import android.app.IntentService;
+import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.net.ConnectivityManager;
+import android.os.SystemClock;
 import android.util.Log;
 
 import androidx.annotation.Nullable;
 
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 public class PollService extends IntentService {
     private static final String TAG = "PollService";
+
+    // 60 секунд
+    private static final long POLL_INTERVAL_MS = TimeUnit.MINUTES.toMillis(1);
 
     public PollService() {
         super(TAG);
@@ -20,6 +27,30 @@ public class PollService extends IntentService {
     // запуск
     public static Intent newIntent(Context context) {
         return new Intent(context, PollService.class);
+    }
+
+    // отправка сигнала, при срабатывании запускается служба PollService
+    public static void setServiceAlarm(Context context, boolean isOn) {
+        Intent intent = PollService.newIntent(context);
+        PendingIntent pi = PendingIntent.getService(context, 0, intent, 0);
+
+        AlarmManager alarmManager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
+
+        if (isOn) {
+            alarmManager.setRepeating(AlarmManager.ELAPSED_REALTIME, SystemClock.elapsedRealtime(),
+                    POLL_INTERVAL_MS, pi);
+        } else {
+            alarmManager.cancel(pi);
+            pi.cancel();
+        }
+    }
+
+    // проверяет включен ли сигнал
+    public static boolean isServiceAlarmOn(Context context) {
+        Intent intent = PollService.newIntent(context);
+        PendingIntent pi = PendingIntent
+                .getService(context, 0, intent, PendingIntent.FLAG_NO_CREATE);
+        return pi != null;
     }
 
     @Override
