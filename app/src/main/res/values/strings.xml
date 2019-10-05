@@ -2,4 +2,8 @@
     <string name="app_name">PhotoGallery</string>
     <string name="search">Поиск</string>
     <string name="clear_search">Очистить поиск</string>
+    <string name="start_polling">Запустить проверку</string>
+    <string name="stop_polling">Остановить проверку</string>
+    <string name="new_pictures_title">Новое изображение PhotoGallery</string>
+    <string name="new_pictures_text">В приложении PhotoGallery появилось новое изображение</string>
 </resources>
