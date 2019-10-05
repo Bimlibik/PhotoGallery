@@ -8,6 +8,8 @@ import android.util.Log;
 
 import androidx.annotation.Nullable;
 
+import java.util.List;
+
 public class PollService extends IntentService {
     private static final String TAG = "PollService";
 
@@ -25,7 +27,28 @@ public class PollService extends IntentService {
         if (!isNetworkAvailableAndConnected()) {
             return;
         }
-        Log.i(TAG, "Received an Intent: " + intent);
+        String query = QueryPreferences.getStoredQuery(this);
+        String lastResultId = QueryPreferences.getLastResultId(this);
+        List<GalleryItem> items;
+
+        if (query == null) {
+            items = new FlickrFetchr().fetchRecentPhotos();
+        } else {
+            items = new FlickrFetchr().searchPhotos(query);
+        }
+
+        if (items.size() == 0) {
+            return;
+        }
+
+        String resultId = items.get(0).getId();
+        if (resultId.equals(lastResultId)) {
+            Log.i(TAG, "Got an old result: " + resultId);
+        } else {
+            Log.i(TAG, "Got a new result: " + resultId);
+        }
+
+        QueryPreferences.setLastResultId(this, resultId);
     }
 
     private boolean isNetworkAvailableAndConnected() {
