@@ -1,5 +1,6 @@
 package com.foxy.photogallery;
 
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
@@ -44,6 +45,9 @@ public class PhotoGalleryFragment extends Fragment {
         setRetainInstance(true);              // удержание фрагмента
         setHasOptionsMenu(true);              // получение обратных вызовов меню
         updateItems();                        // запуск фонового потока
+
+        Intent intent = PollService.newIntent(getActivity());  // запуск службы PollService
+        getActivity().startService(intent);
 
         Handler responseHandler = new Handler();
         thumbnailDownloader = new ThumbnailDownloader<>(responseHandler);
