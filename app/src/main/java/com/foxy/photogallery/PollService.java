@@ -24,6 +24,11 @@ public class PollService extends IntentService {
     // 60 секунд
     private static final long POLL_INTERVAL_MS = TimeUnit.MINUTES.toMillis(1);
 
+    public static final String ACTION_SHOW_NOTIFICATION = "com.foxy.photogallery.SHOW_NOTIFICATION";
+
+    // разрешение для использования broadcast'а
+    public static final String PERM_PRIVATE = "com.foxy.photogallery.PRIVATE";
+
     public PollService() {
         super(TAG);
     }
@@ -100,6 +105,8 @@ public class PollService extends IntentService {
 
             NotificationManagerCompat notificationManager = NotificationManagerCompat.from(this);
             notificationManager.notify(0, notification);   // id - идентификатор оповещения
+
+            sendBroadcast(new Intent(ACTION_SHOW_NOTIFICATION), PERM_PRIVATE);  // отправка broadcast'а при каждом появлении нового фото
         }
 
         QueryPreferences.setLastResultId(this, resultId);
