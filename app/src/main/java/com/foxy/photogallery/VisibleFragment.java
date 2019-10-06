@@ -1,9 +1,11 @@
 package com.foxy.photogallery;
 
+import android.app.Activity;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.util.Log;
 import android.widget.Toast;
 
 import androidx.fragment.app.Fragment;
@@ -28,13 +30,12 @@ public abstract class VisibleFragment extends Fragment {
         getActivity().unregisterReceiver(onShowNotification);
     }
 
+    // Получение означает, что пользователь видит приложение, поэтому оповещение отменяется
     private BroadcastReceiver onShowNotification = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
-            Toast.makeText(getActivity(),
-                    "Got a broadcast: " + intent.getAction(),
-                    Toast.LENGTH_LONG)
-                    .show();
+            Log.i(TAG, "cancelling notification");
+            setResultCode(Activity.RESULT_CANCELED);
         }
     };
 }
