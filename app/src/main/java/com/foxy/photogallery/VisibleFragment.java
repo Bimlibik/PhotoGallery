@@ -11,15 +11,6 @@ import androidx.fragment.app.Fragment;
 // Предоставляет обобщенный фрагмент, скрывающий оповещения переднего плана
 public abstract class VisibleFragment extends Fragment {
     private static final String TAG = "VisibleFragment";
-    private BroadcastReceiver onShowNotification = new BroadcastReceiver() {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            Toast.makeText(getActivity(),
-                    "Got a broadcast: " + intent.getAction(),
-                    Toast.LENGTH_LONG)
-                    .show();
-        }
-    };
 
     // регистрация приемника
     @Override
@@ -36,4 +27,14 @@ public abstract class VisibleFragment extends Fragment {
         super.onStop();
         getActivity().unregisterReceiver(onShowNotification);
     }
+
+    private BroadcastReceiver onShowNotification = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            Toast.makeText(getActivity(),
+                    "Got a broadcast: " + intent.getAction(),
+                    Toast.LENGTH_LONG)
+                    .show();
+        }
+    };
 }
