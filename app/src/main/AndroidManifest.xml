@@ -3,11 +3,22 @@
     xmlns:tools="http://schemas.android.com/tools"
     package="com.foxy.photogallery">
 
+    <!--Регистрация собственного разрешения-->
+    <permission
+        android:name="com.foxy.photogallery.PRIVATE"
+        android:protectionLevel="signature" />
+
     <!--Разрешение на работу с сетью-->
     <uses-permission android:name="android.permission.INTERNET" />
 
     <!--Разрешение на предоставление информации о сети-->
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+
+    <!--Разрешение на прослушку broadcast'а системы о включении устройства-->
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+
+    <!--Разрешение на использование broadcast приложения-->
+    <uses-permission android:name="com.foxy.photogallery.PRIVATE" />
 
     <application
         android:allowBackup="true"
@@ -26,5 +37,21 @@
             </intent-filter>
         </activity>
         <service android:name=".PollService" />
+
+        <!--Автономный BroadcastReceiver. Прослушивает broadcast системы о включении устройства-->
+        <receiver android:name=".StartupReceiver">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+            </intent-filter>
+        </receiver>
+
+        <!--Автономный BroadcastReceiver с ограниченным доступом. Получает рассылку после динамического-->
+        <receiver
+            android:name=".NotificationReceiver"
+            android:exported="false">
+            <intent-filter android:priority="-999">
+                <action android:name="com.foxy.photogallery.SHOW_NOTIFICATION" />
+            </intent-filter>
+        </receiver>
     </application>
 </manifest>

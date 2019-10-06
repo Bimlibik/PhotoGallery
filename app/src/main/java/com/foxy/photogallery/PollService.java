@@ -1,5 +1,6 @@
 package com.foxy.photogallery;
 
+import android.app.Activity;
 import android.app.AlarmManager;
 import android.app.IntentService;
 import android.app.Notification;
@@ -22,7 +23,14 @@ public class PollService extends IntentService {
     private static final String TAG = "PollService";
 
     // 60 секунд
-    private static final long POLL_INTERVAL_MS = TimeUnit.MINUTES.toMillis(15);
+    private static final long POLL_INTERVAL_MS = TimeUnit.MINUTES.toMillis(1);
+
+    public static final String ACTION_SHOW_NOTIFICATION = "com.foxy.photogallery.SHOW_NOTIFICATION";
+
+    // разрешение для использования broadcast'а
+    public static final String PERM_PRIVATE = "com.foxy.photogallery.PRIVATE";
+    public static final String REQUEST_CODE = "REQUEST_CODE";
+    public static final String NOTIFICATION = "NOTIFICATION";
 
     public PollService() {
         super(TAG);
@@ -47,6 +55,9 @@ public class PollService extends IntentService {
             alarmManager.cancel(pi);
             pi.cancel();
         }
+
+        // запись сигнала в общие настройки
+        QueryPreferences.setAlarmOn(context, isOn);
     }
 
     // проверяет включен ли сигнал
@@ -95,11 +106,17 @@ public class PollService extends IntentService {
                     .setAutoCancel(true)                                                // при нажатии на оповещение оно удаляется с панели
                     .build();
 
-            NotificationManagerCompat notificationManager = NotificationManagerCompat.from(this);
-            notificationManager.notify(0, notification);   // id - идентификатор оповещения
+            showBackgroundNotification(0, notification);
         }
 
         QueryPreferences.setLastResultId(this, resultId);
+    }
+
+    private void showBackgroundNotification(int requestCode, Notification notification) {
+        Intent intent = new Intent(ACTION_SHOW_NOTIFICATION);
+        intent.putExtra(REQUEST_CODE, requestCode);
+        intent.putExtra(NOTIFICATION, notification);
+        sendOrderedBroadcast(intent, PERM_PRIVATE, null, null, Activity.RESULT_OK, null, null);
     }
 
     private boolean isNetworkAvailableAndConnected() {
