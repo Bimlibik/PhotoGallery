@@ -22,7 +22,7 @@ public class PollService extends IntentService {
     private static final String TAG = "PollService";
 
     // 60 секунд
-    private static final long POLL_INTERVAL_MS = TimeUnit.MINUTES.toMillis(15);
+    private static final long POLL_INTERVAL_MS = TimeUnit.MINUTES.toMillis(1);
 
     public PollService() {
         super(TAG);
@@ -47,6 +47,9 @@ public class PollService extends IntentService {
             alarmManager.cancel(pi);
             pi.cancel();
         }
+
+        // запись сигнала в общие настройки
+        QueryPreferences.setAlarmOn(context, isOn);
     }
 
     // проверяет включен ли сигнал
