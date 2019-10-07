@@ -19,7 +19,6 @@ import android.widget.ImageView;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.widget.SearchView;
-import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -52,7 +51,7 @@ public class PhotoGalleryFragment extends VisibleFragment {
             @Override
             public void onThumbnailDownloaded(PhotoHolder photoHolder, Bitmap bitmap) {
                 Drawable drawable = new BitmapDrawable(getResources(), bitmap);
-                photoHolder.bind(drawable);
+                photoHolder.bindDrawable(drawable);
                 Log.i(TAG, "Img downloaded");
             }
         });
@@ -163,16 +162,28 @@ public class PhotoGalleryFragment extends VisibleFragment {
 
 
     // Holder
-    private class PhotoHolder extends RecyclerView.ViewHolder {
+    private class PhotoHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
         private ImageView itemImageView;
+        private GalleryItem galleryItem;
 
         public PhotoHolder(@NonNull View itemView) {
             super(itemView);
             itemImageView = itemView.findViewById(R.id.item_image_view);
+            itemView.setOnClickListener(this);
         }
 
-        public void bind(Drawable drawable) {
+        public void bindDrawable(Drawable drawable) {
             itemImageView.setImageDrawable(drawable);
+        }
+
+        public void bindGalleryItem(GalleryItem galleryItem) {
+            this.galleryItem = galleryItem;
+        }
+
+        @Override
+        public void onClick(View v) {
+            Intent intent = new Intent(Intent.ACTION_VIEW, galleryItem.getPhotoPageUri());
+            startActivity(intent);
         }
     }
 
@@ -195,8 +206,7 @@ public class PhotoGalleryFragment extends VisibleFragment {
         @Override
         public void onBindViewHolder(@NonNull PhotoHolder holder, int position) {
             GalleryItem item = galleryItems.get(position);
-            Drawable placeholder = getResources().getDrawable(R.drawable.bill_up_close);
-//            holder.bind(placeholder);
+            holder.bindGalleryItem(item);
             thumbnailDownloader.queueThumbnail(holder, item.getUrl());
         }
 
