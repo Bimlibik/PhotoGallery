@@ -1,9 +1,12 @@
 package com.foxy.photogallery;
 
+import android.net.Uri;
+
 public class GalleryItem {
     private String caption;
     private String id;
     private String url;
+    private String owner;
 
     public String getCaption() {
         return caption;
@@ -27,6 +30,23 @@ public class GalleryItem {
 
     public void setUrl(String url) {
         this.url = url;
+    }
+
+    public String getOwner() {
+        return owner;
+    }
+
+    public void setOwner(String owner) {
+        this.owner = owner;
+    }
+
+    // адрес страницы фото с описанием
+    public Uri getPhotoPageUri() {
+        return Uri.parse("https://www.flickr.com/photos/")
+                .buildUpon()
+                .appendPath(owner)
+                .appendPath(id)
+                .build();
     }
 
     @Override
