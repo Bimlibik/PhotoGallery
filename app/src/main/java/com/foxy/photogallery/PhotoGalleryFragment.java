@@ -180,9 +180,10 @@ public class PhotoGalleryFragment extends VisibleFragment {
             this.galleryItem = galleryItem;
         }
 
+        // открытие новой activity по клику
         @Override
         public void onClick(View v) {
-            Intent intent = new Intent(Intent.ACTION_VIEW, galleryItem.getPhotoPageUri());
+            Intent intent = PhotoPageActivity.newIntent(getActivity(), galleryItem.getPhotoPageUri());
             startActivity(intent);
         }
     }
